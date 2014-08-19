@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+
+<html ng-app="ServersApp">
+<head>
+	<title>{{.title}}</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<link rel="stylesheet" type="text/css" href="/public/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="/public/css/bootstrap-theme.min.css">
+	<link rel="shortcut icon" type="image/png" href="/public/img/favicon.png">
+	{{range .moreStyles}}
+	<link rel="stylesheet" type="text/css" href="/public/{{.}}">
+	{{end}}
+	{{range .moreScripts}}
+	<script src="/public/{{.}}" type="text/javascript" charset="utf-8"></script>
+	{{end}}
+	<style type="text/css">
+		.server {
+			width: 34em;
+			margin: .5em;
+			display: inline-block;
+			vertical-align: top;
+		}
+		.server .btn-group {
+			margin: -0.45em -0.85em 0px 0px;
+		}
+
+		label { cursor : pointer; }
+
+		.container-width-40em	{
+			width	: 40em;
+		}
+
+		.bs-callout {
+			margin	: 1em 0;
+			padding	: 1em 2em;
+			border-left: 3px solid #eee
+		}
+
+		.bs-callout-warning		{
+			background-color: #fcf8f2;
+			border-color: #f0ad4e;
+		}
+
+		.panel-heading-arrow.collapsed > :before	{
+			display		: inline;
+			content		: "\25b6";
+			font-size	: .9em;
+			padding-right	:.4em;
+		}
+
+		.panel-heading-arrow > :before {
+			display		: inline;
+			content		: "\25bc";
+			font-size	: .9em;
+			padding-right	: .3em;
+		}
+
+		.panel-heading:hover {
+			cursor: pointer;
+		}
+
+		.no-transition {
+			-webkit-transition : none;
+			-moz-transition    : none;
+			-ms-transition     : none;
+			-o-transition      : none;
+			transition         : none;
+		}
+
+		.mytable > thead {
+			border-bottom: 2px solid lightsteelblue;
+			overflow-y: hidden;
+			overflow-x: auto;
+			display: block;
+		}
+
+		.mytable td, .mytable th {
+			padding: 0 .162em;
+			border : 0 solid lightsteelblue;
+			border-right-width : thin;
+			/*display: inline-block;*/
+			height: 100%;
+			max-height: 4em;
+			border-radius: 0;
+			overflow-wrap: break-word;
+			overflow-y : auto;
+			overflow-x : hidden;
+			word-break: break-all;
+			word-wrap: break-word;
+			text-align: left;
+			white-space: normal;
+		}
+
+		.mytable > tbody > tr:nth-child(2n+1) {	background-color: #F2F5F9; }
+		.mytable > tbody > tr:nth-child(2n+2) {	background-color: rgb(255,255,255); }
+	</style>
+</head>
+<body>

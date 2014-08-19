@@ -1,0 +1,9 @@
+<script src="/public/js/jquery-2.1.1.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="/public/js/angular.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="/public/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="/public/js/servers.js" type="text/javascript" charset="utf-8"></script>
+{{if eq .RunMode "dev"}}
+	{{template "debug.html" .}}
+{{end}}
+</body>
+</html>

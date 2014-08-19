@@ -1,0 +1,102 @@
+{{set . "title" "Home"}}
+{{template "header.html" .}}
+<nav class="navbar navbar-default" role="navigation">
+
+	<div class="container-fluid" ng-controller="ServersController">
+		<div class="navbar-header">
+			<span class="navbar-brand">Servers</span>
+		</div>
+		<div class="collapse navbar-collapse">
+			<div class="nav navbar-nav">
+				<div class="navbar-nav navbar-btn dropdown">
+					<a href="#" class="btn btn-toolbar dropdown-toggle" data-toggle="dropdown">
+						Account
+						<b class="caret"></b>
+					</a>
+					<ul class="dropdown-menu" role="menu">
+						<li class="disabled"><a href="#">Settings</a></li>
+						<li class="divider"></li>
+						<li><a href="{{ url "User.Logout" }}">Logout</a></li>
+					</ul>
+				</div>
+				<button class="btn navbar-btn btn-info" ng-click="ServersAction('reload')">Reload config</button>
+				<div class="navbar-default btn-group">
+					<button class="btn navbar-btn btn-primary" ng-click="ServersAction('run')">Query</button>
+					<button class="btn navbar-btn btn-primary" ng-click="ServersAction('start')">Start</button>
+					<button class="btn navbar-btn btn-primary" ng-click="ServersAction('stop')">Stop</button>
+				</div>
+
+				<!--<button class="btn navbar-btn btn-info disabled" disabled ng-click="">Manage Users</button>-->
+			</div>
+		</div>
+		<script>
+			{{ with .serversJSON }}
+			servers	= JSON.parse ( {{ . }} );
+			{{ end }}
+			error	= null;
+			{{ with .error }}
+			error	= {{ . }};
+			{{ end }}
+		</script>
+		<h4 ng-if="error" class="bg-danger">{{ "{{" }} error {{ "}}" }}</h4>
+
+		<div class="panel panel-default server" ng-repeat="$server in servers">
+			<div class="panel-heading center-block">
+				<div class="pull-left">
+					{{ "{{" }} $server.Label {{ "}}" }}
+				</div>
+				<div ng-switch on="$server.Status" class="pull-right btn-group">
+					<button class="btn btn-primary"
+							ng-click="ServerAction( $server.Label, 'run')">Query</button>
+					<button ng-switch-default class="btn btn-primary"
+							ng-click="ServerAction( $server.Label, 'start')">Start</button>
+					<button ng-switch-when="running" class="btn btn-primary"
+							ng-click="ServerAction( $server.Label, 'stop')">Stop</button>
+					<button class="btn btn-primary disabled" disabled="disabled">Edit</button>
+				</div>
+				<div ng-switch on="$server.Status" class="center-block text-center">
+					<span ng-switch-when="running" class="status text-success">running</span>
+					<span ng-switch-when="" class="status text-info">stopped</span>
+					<span ng-switch-when="stopped" class="status text-info">stopped</span>
+					<span ng-switch-default class="status text-info">{{ "{{" }} $server.Status {{ "}}" }}</span>
+					@ <span class="queryInterval">{{ "{{" }} $server.QueryIntervalSec {{ "}}" }}</span> sec
+				</div>
+			</div>
+			<div class="panel-body">
+				<div class="pull-right">
+					<span ng-if="$server.PrivateKeyPath.length" class="label label-info">ssh-key</span>
+					<span ng-if="$server.Password.length" class="label label-info">password</span>
+				</div>
+				<div style="margin-bottom: .5em">
+					{{ "{{" }} $server.Username {{ "}}" }}
+					@ {{ "{{" }} $server.Host {{ "}}" }}
+					<span ng-if="$server.Port">: {{ "{{" }} $server.Port {{ "}}" }}</span>
+				</div>
+				<div ng-if="$server.ErrorMsg" class="alert-error">
+					{{ "{{" }} $server.ErrorMsg {{ "}}" }}
+				</div>
+
+				<table ng-if="$server.Responses" class="table table-responsive table-condensed table-hover">
+					<thead><tr>
+						<th>Cmd</th><th>Last response</th>
+					</tr></thead>
+					<tbody ng-repeat="($cmd, $value) in $server.Responses">
+					<tr>
+						<td>{{ "{{" }} $cmd  {{ "}}" }}</td><td>{{ "{{" }} $value  {{ "}}" }}</td>
+					</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+</nav>
+
+<div class="container">
+	<div class="row">
+		<div class="span6">
+			{{template "flash.html" .}}
+		</div>
+	</div>
+</div>
+
+{{template "footer.html" .}}
