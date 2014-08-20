@@ -2,85 +2,50 @@ package	models
 
 import	(
 	"fmt"
-	"errors"
-	"strings"
 	"bytes"
+	"errors"
+	"encoding/json"
 	"time"
 	"strconv"
 	"io/ioutil"
+	"regexp"
 
 	"github.com/revel/revel"
 	"code.google.com/p/go.crypto/ssh"
 	"github.com/robfig/cron"
-//	"github.com/kr/pretty"
+	"github.com/kr/pretty"
 )
 
-
-const	SERVERS_CONF		= "servers.conf"
-const	CMD_SECTION_SUFFIX	= "/commands"
+var serverRegex = regexp.MustCompile("^\\w+$")
 
 type Server struct {
-	Label			string
-	PrivateKeyPath	string
+//	TODO: implement Id for section title, instead of Label
+	Label			string	`json:"label"`
+	PrivateKeyPath	string	`json:"private_key"`
 //	PrivateKeyBytes	[] byte
-	Username	string
-	Password	string
-	Host		string
-	Port		string
+	Username	string		`json:"username"`
+	Password	string		`json:"password"`
+	Host		string		`json:"host"`
+	Port		string		`json:"port"`
 	AuthMethods	[] ssh.AuthMethod	`json:"-"`
 	ClientConnection	* ssh.Client	`json:"-"`
-	QueryIntervalSec	int
+	QueryIntervalSec	int	`json:"query_interval"`
 
 	Schedule	cron.Schedule		`json:"-"`
 	Cron		* cron.Cron			`json:"-"`
 
-	Status	string
+	Status	string		`json:"status"`
 
-	Commands	map [ string ] string
-	Responses	map [ string ] string
-	Error		error
-	ErrorMsg	string
+	Commands	map [ string ] string		`json:"commands"`
+	Responses	map [ string ] string		`json:"responses"`
+	Error		error			`json:"error"`
+	ErrorMsg	string			`json:"error_msg"`
 }
-
-type Servers	map [ string ] * Server
 
 type ServerInterface	interface	{
 	Run ()
 	Start ()
 	Stop ()
-}
-
-func LoadServers ()	( servers  * Servers, err  error )	{
-
-//	servers	= nil
-	MergedConfig, err	:= revel.LoadConfig ( SERVERS_CONF )
-
-	if	err != nil	{
-		err	= errors.New ( fmt.Sprintf ( "Could not load config file \"%s\" : %s", SERVERS_CONF, err.Error () ) )
-		return
-	}
-
-
-	servers	= new ( Servers );	* servers = make ( Servers )
-
-	for	_, sectionName	:= range ( MergedConfig .Raw () .Sections () )	{
-
-		if	sectionName == "DEFAULT"	|| strings.HasSuffix ( sectionName, CMD_SECTION_SUFFIX )	{
-			continue
-		}
-		MergedConfig .SetSection ( sectionName )
-
-		server	:= NewServerFromConfig ( MergedConfig )
-		( * server ).Label	= sectionName
-
-		if	MergedConfig.HasSection ( sectionName + CMD_SECTION_SUFFIX )	{
-			MergedConfig .SetSection ( sectionName + CMD_SECTION_SUFFIX )
-			( * server ).Commands	= * LoadOptionsFromConfig ( MergedConfig )
-		}
-
-		( * servers ) [ sectionName ]	= server
-	}
-	return
 }
 
 func NewServerFromConfig ( MergedConfig  * revel.MergedConfig )	( * Server )	{
@@ -119,6 +84,7 @@ func NewServerFromParams ( Params  * revel.Params )	( server  * Server )	{
 	var cmds	[][] string
 	Params.Bind ( & cmds, "commands" )
 	server.Commands	= make ( map [ string ] string )
+	fmt.Printf("%# v", pretty.Formatter( Params ))
 
 	for	_, cmd	:= range ( cmds )	{
 		if	len ( cmd ) == 2	&& cmd [ 0 ] != ""	&& cmd [ 1 ] != ""	{
@@ -188,6 +154,34 @@ func ( self  * Server )	ParsePrivateKey ( filePath  string )	( error )	{
     self.AuthMethods	= append ( self.AuthMethods, ssh.PublicKeys ( signer ) )
 
 	return	nil
+}
+
+type _jsonServer	Server
+type _jsonAltServer	struct	{
+	QueryIntervalSec	string	`json:"query_interval"`
+}
+
+func ( self  * Server )	UnmarshalJSON ( data  [] byte )	( err error )	{
+	var server	_jsonServer
+	err	= json.Unmarshal ( data, & server )
+
+	* self	= Server ( server )
+	self.SetPassword ( self.Password )
+	self.ParsePrivateKey ( self.PrivateKeyPath )
+	self.SetQueryInterval ( self.QueryIntervalSec )
+
+	if	err == nil	{	return	}
+
+//	QueryIntervalSec is a string
+	var alt_server	_jsonAltServer
+	err	= json.Unmarshal ( data, & alt_server )
+	if	err != nil	{	return	}
+
+	query_interval_int, err	:= strconv.Atoi ( alt_server.QueryIntervalSec )
+	if	err != nil	{	return	}
+
+	self.SetQueryInterval ( query_interval_int )
+	return
 }
 
 func ( self  * Server )	Connect ()	( error )	{
@@ -289,6 +283,16 @@ func ( self  * Server )	Delete ()	{
 	self		= nil
 }
 
+func ( self  * Server )	Validate ( v  * revel.Validation )	{
+//	TODO: use it in controller
+	v.Check ( self.Label,
+		revel.Required{},
+		revel.MaxSize{63},
+		revel.MinSize{1},
+		revel.Match{userRegex},
+	)
+}
+
 //	No difference from delete and reassigned, since all fields are replaced
 
 //func ( self  * Server )	Update ( other  * Server )	{
@@ -314,24 +318,3 @@ func ( self  * Server )	Delete ()	{
 //	responses
 //	error
 //}
-
-func ( self  * Servers )	Save ()	{
-//	TODO
-}
-
-
-func ( self  * Servers )	Run ()	{
-	for	_, x := range ( * self )	{
-		x.Run ()
-	}
-}
-func ( self  * Servers )	Start ()	{
-	for	_, x := range ( * self )	{
-		x.Start ()
-	}
-}
-func ( self  * Servers )	Stop ()	{
-	for	_, x := range ( * self )	{
-		x.Stop ()
-	}
-}

@@ -3,45 +3,50 @@ package controllers
 import	(
 	"fmt"
 	"strings"
+	"io"
+	"io/ioutil"
+	"encoding/json"
+
 	"watchdog_ui/app/models"
 	"watchdog_ui/app/routes"
-	"github.com/revel/revel"
 
-//	"github.com/kr/pretty"
+	"github.com/revel/revel"
+//	"github.com/kr/prettsy"	//	fmt.Printf("%# v", pretty.Formatter( value ))
 )
 
 type ApiServers struct {
 	*revel.Controller
 }
+//	TODO: don't show server's passwords for users
 
 func (self *ApiServers) All () revel.Result {
 
 	if	ServersLastError != nil	{
-		var result	= map [ string ] interface{} { "error2" : ServersLastError, "error" : "a" }
-		return	self.RenderJson ( result )
+		return	self.RenderJson ( GenerateJsonStruct ( "", ServersLastError.Error () ) )
 	}
 
 	var	action	= strings.ToLower ( self.Params.Get ( "action" ) )
 	switch	action	{
 		case "save"	:
-			ServersMap.Save ()
+			ServersLastError	= ServersMap.Save ()
 		case "reload"	:
 			for	_, s	:= range ( * ServersMap )	{
 				s.Delete ()
 			}
 			ServersMap, ServersLastError	= models .LoadServers ()
-			if	ServersLastError != nil	{
-				revel.ERROR.Print ( ServersLastError )
-			}
+	}
+	if	ServersLastError != nil	{
+		revel.ERROR.Print ( ServersLastError )
+		return	self.RenderJson ( GenerateJsonStruct ( "", ServersLastError.Error () ) )
 	}
 
 	PerformActions ( self.Params, ServersMap )
 	return	self.RenderJson ( ServersMap )
 }
 
-func ( self  * ApiServers )	Show ( id  string )		( revel.Result )	{
-	server, result	:= self.GetResource ( id )
 
+func ( self  * ApiServers )	Show ( id  string )		( revel.Result )	{
+	var server, result	= self.GetResource ( id )
 	if	server == nil	{
 		return	result
 	}
@@ -53,41 +58,53 @@ func ( self  * ApiServers )	Show ( id  string )		( revel.Result )	{
 func ( self  * ApiServers )	GetResource ( id  string )		( * models.Server, revel.Result )	{
 
 	if	ServersLastError != nil	{
-		var result	= map [ string ] interface{} { "error" : ServersLastError }
-		return	nil, self.RenderJson ( result )
+		return	nil, self.RenderJson ( GenerateJsonStruct ( "", ServersLastError.Error () ) )
 	}
 
 	server, isFound	:= ( * ServersMap )[ id ]
-
 	if	isFound == false	{
-		var result	= map [ string ] interface{} { "error" : fmt.Sprintf ( "ID '%s' not found", id ) }
 		self.Response.Status	= 404
-		return	nil, self.RenderJson ( result )
+		return	nil, self.RenderJson ( GenerateJsonStruct ( "", fmt.Sprintf ( "ID '%s' not found", id ) ) )
 	}
-
 	return	server, nil
 }
 
-func ( self  * ApiServers )	Create ()		( revel.Result )	{
-	var	(
-		returnData	= map [ string ] string {	"result" : "ok"	}
-		server	= models.NewServerFromParams ( self.Params )
-	)
-	if	server.Label == ""	{
-		returnData [ "error" ]	= "Cannot create unLabeled server"
-		delete ( returnData, "result" )
-		return	self.RenderJson ( returnData )
+func ( self  * ApiServers )	CreateResource ()	( * models.Server, revel.Result )	{
+	var server	models.Server
+	err	:= DecodeJsonPayload ( self.Request.Body, & server )
+
+	if	err != nil	{
+		return	nil,
+			self.RenderJson ( GenerateJsonStruct ( "", fmt.Sprintf ( "Couldn't parse provided data : '%s'", err ) ) )
 	}
 
+	if	server.Label == ""	{
+		return	nil, self.RenderJson ( GenerateJsonStruct ( "", "Cannot create unLabeled server" ) )
+	}
+//	server.ParsePrivateKey ( server.PrivateKeyPath )
+//	server.SetPassword ( server.Password )
+//	server.SetQueryInterval ( server.QueryIntervalSec )
+
+	return	& server, nil
+}
+
+func ( self  * ApiServers )	Create ()		( revel.Result )	{
+//	Create server instance from request.Body
+	server, result	:= self.CreateResource ()
+	if	server == nil	{
+		return	result
+	}
 	( * ServersMap )[ server.Label ]	= server
+
+	var returnData	= * GenerateJsonStruct ( "", fmt.Sprintf ( "New server \"%s\" was crated", server.Label ))
 	returnData [ "url" ]	= routes.ApiServers.Show ( server.Label )
 
 	return	self.RenderJson ( returnData )
 }
-func ( self  * ApiServers )	Action ( method, id  string )		( revel.Result )	{
 
-	server, result	:= self.GetResource ( id )
-
+func ( self  * ApiServers )	Alter ( id, method  string )	( revel.Result )	{
+//	Check if server with given ID exists
+	var server, result	= self.GetResource ( id )
 	if	server == nil	{
 		return	result
 	}
@@ -95,44 +112,39 @@ func ( self  * ApiServers )	Action ( method, id  string )		( revel.Result )	{
 	if	method == ""	{
 		method	= self.Params.Get ( "_method" )
 	}
-
-	var returnData	= map [ string ] string {
-		"result" : "ok",
-	}
+	var returnData	= * GenerateJsonStruct ( "", "" )
 
 	switch	strings.ToLower ( method )	{
+
 		case "delete"	:
 			returnData [ "result" ]	= fmt.Sprintf ( "%s was deleted", server.Label )
 			delete ( * ServersMap, server.Label )
 			server.Delete ()
 
-		case "update"	:	fallthrough
+//		PUT, POST, PATCH will replace / update
 		default	:
-			var updatedServer	= models.NewServerFromParams ( self.Params )
-			if	updatedServer.Label == ""	{
-				returnData [ "error" ]	= "Cannot create unLabeled server"
-				delete ( returnData, "result" )
-				return	self.RenderJson ( returnData )
+			var	old_label	= server.Label
+//			Create server instance from request.Body
+			server, result	= self.CreateResource ()
+			if	server == nil	{
+				return	result
 			}
-			var	oldLabel	= server.Label
-			server.Delete ()
-			if	oldLabel != updatedServer.Label	{
-				delete ( * ServersMap, oldLabel )
+			( * ServersMap )[ old_label ].Delete ()
+
+			if	old_label != server.Label	{
+				delete ( * ServersMap, old_label )
 			}
-			server	= updatedServer
 			( * ServersMap )[ server.Label ]	= server
 
-			returnData [ "result" ]	= fmt.Sprintf ( "%s was updated", oldLabel )
+			returnData [ "result" ]	= fmt.Sprintf ( "%s was updated", old_label )
 			returnData [ "url" ]	= routes.ApiServers.Show ( server.Label )
 	}
-
 	return	self.RenderJson ( returnData )
 }
 
 func PerformActions ( params  * revel.Params, serverInterface  models.ServerInterface )	{
-	var	(
-		action	= strings.ToLower ( params.Get ( "action" ) )
-	)
+	var action	= strings.ToLower ( params.Get ( "action" ) )
+
 	switch	action	{
 		case "start"	:
 			serverInterface.Start ()
@@ -141,4 +153,21 @@ func PerformActions ( params  * revel.Params, serverInterface  models.ServerInte
 		case "run"	:
 			serverInterface.Run ()
 	}
+}
+
+func DecodeJsonPayload	( request_body  io.ReadCloser, v  interface {} )	( error )	{
+    content, err	:= ioutil.ReadAll ( request_body )
+    if err != nil {
+        return err
+    }
+
+    err = json.Unmarshal(content, & v )
+    if err != nil {
+        return err
+    }
+    return nil
+}
+
+func GenerateJsonStruct	( response, error  string )	( * map [ string ] interface{} )	{
+	return	& map [ string ] interface{} { "error" : error, "response" : response }
 }

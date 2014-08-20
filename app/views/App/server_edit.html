@@ -1,0 +1,61 @@
+<div class="modal" id="editServerModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+				<h4 class="modal-title">Editing {{"{{"}} $serverToEditId {{"}}"}}</h4>
+			</div>
+			<div class="modal-body">
+				<form class="form-horizontal" role="form">
+					<div class="form-group">
+						<label for="editServer_Label" class="col-xs-3 col-sm-2 control-label">Label</label>
+						<div class="col-xs-8 col-sm-5">
+							<input type="text" class="form-control" id="editServer_Label" name="editServer_Label" placeholder="Server's name" ng-model="$serverToEdit.label" required="required" min-length="1">
+						</div>
+
+						<label for="editServer_QueryIntervalSec" class="col-xs-3 col-sm-2 control-label">Interval</label>
+						<div class="col-xs-8 col-sm-2 input-group">
+							<input type="text" class="form-control" id="editServer_QueryIntervalSec" name="editServer_QueryIntervalSec" placeholder="60" ng-model="$serverToEdit.query_interval">
+							<span class="input-group-addon">sec</span>
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="editServer_Host" class="col-xs-3 col-sm-2 control-label">Host</label>
+						<div class="col-xs-8 col-sm-6">
+							<input type="text" class="form-control" id="editServer_Host" name="editServer_Host" placeholder="Hostname or unix path" ng-model="$serverToEdit.host" required="required" min-length="1">
+						</div>
+						<label for="editServer_Port" class="col-xs-3 col-sm-1 control-label">Port</label>
+						<div class="col-xs-8 col-sm-2">
+							<input type="text" class="form-control" id="editServer_Port" name="editServer_Port" placeholder="Port" ng-model="$serverToEdit.port">
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="editServer_Username" class="col-xs-3 col-sm-2 control-label">User</label>
+						<div class="col-xs-8 col-sm-4">
+							<input type="text" class="form-control" id="editServer_Username" name="editServer_Username" placeholder="Username" ng-model="$serverToEdit.username">
+						</div>
+						<label for="editServer_Password" class="col-xs-3 col-sm-1 control-label">Pass</label>
+						<div class="col-xs-8 col-sm-4">
+							<input type="password" class="form-control" id="editServer_Password" name="editServer_Password" placeholder="Password" ng-model="$serverToEdit.password">
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="editServer_PrivateKeyPath" class="col-xs-3 col-sm-3 control-label">Private Key Path</label>
+						<div class="col-xs-8 col-sm-8 ">
+							<input type="text" class="form-control" id="editServer_PrivateKeyPath" name="editServer_PrivateKeyPath" placeholder="Full path or empty" ng-model="$serverToEdit.private_key">
+						</div>
+					</div>
+					<p>
+						<div class="bg-info" ng-bind="$serverToEditResult.status"></div>
+						<div class="bg-danger" ng-bind="$serverToEditResult.error"></div>
+						<div class="bg-success" ng-bind="$serverToEditResult.result"></div>
+					</p>
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-primary" ng-click="SaveServerEdit()">Send changes</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal-dialog -->
+</div><!-- /.modal -->

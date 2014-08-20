@@ -5,14 +5,17 @@
 module:testrunner
 
 GET     /                                       App.Index
+GET     /login                                  User.Login
+POST    /login                                  User.Login
+GET     /logout                                 User.Logout
 
 GET     /api/v1/servers                         ApiServers.All
 GET     /api/v1/servers/:id                     ApiServers.Show
 
 POST    /api/v1/servers                         ApiServers.Create
-POST    /api/v1/servers/:id                     ApiServers.Action
-PUT     /api/v1/servers/:id                     ApiServers.Action("UPDATE")
-DELETE  /api/v1/servers/:id                     ApiServers.Action("DELETE")
+POST    /api/v1/servers/:id                     ApiServers.Alter
+PUT     /api/v1/servers/:id                     ApiServers.Alter("PUT")
+DELETE  /api/v1/servers/:id                     ApiServers.Alter("DELETE")
 
 # Ignore favicon requests
 GET     /favicon.ico                            404
