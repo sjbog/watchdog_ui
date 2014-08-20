@@ -10,6 +10,7 @@ angular.module('ServersApp', [])
 		}
 		$scope.updateHandle	= null;
 
+		//TODO: refactor http's into service
 		$scope.errorHandlerFn	= function(data, status, headers, config) {
 			//console.log ( data );
 			if	( data	&& typeof data [ "error" ] )	{

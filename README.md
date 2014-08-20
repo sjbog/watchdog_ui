@@ -4,6 +4,11 @@ watchdog_ui
 ### Install
 ```git clone```
 
+#### Dependencies
+```
+code.google.com/p/go.crypto/bcrypt
+```
+
 Default account: ```root:1234```
 
 ### Servers config file
