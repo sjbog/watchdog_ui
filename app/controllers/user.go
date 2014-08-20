@@ -99,6 +99,8 @@ func	CheckUserAuth ( controller  * revel.Controller )	revel.Result	{
 	}
 
 	controller.Flash.Error ( "Please log in first" )
+	controller.Response.Out.Header ().Set ( "Requires-Auth", "1" )
+//	controller.Response.Status	= 401
 
 	return	controller.Redirect ( ( * User ).Login )
 }

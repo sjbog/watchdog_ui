@@ -20,16 +20,14 @@ type ApiServers struct {
 //	TODO: don't show server's passwords for users
 
 func (self *ApiServers) All () revel.Result {
-
-	if	ServersLastError != nil	{
-		return	self.RenderJson ( GenerateJsonStruct ( "", ServersLastError.Error () ) )
-	}
-
 	var	action	= strings.ToLower ( self.Params.Get ( "action" ) )
 	switch	action	{
-		case "save"	:
-			ServersLastError	= ServersMap.Save ()
+		case "save"	: ServersLastError	= ServersMap.Save ()
+
 		case "reload"	:
+			if	ServersLastError != nil	{
+				return	self.RenderJson ( GenerateJsonStruct ( "", ServersLastError.Error () ) )
+			}
 			for	_, s	:= range ( * ServersMap )	{
 				s.Delete ()
 			}
@@ -81,9 +79,6 @@ func ( self  * ApiServers )	CreateResource ()	( * models.Server, revel.Result )	
 	if	server.Label == ""	{
 		return	nil, self.RenderJson ( GenerateJsonStruct ( "", "Cannot create unLabeled server" ) )
 	}
-//	server.ParsePrivateKey ( server.PrivateKeyPath )
-//	server.SetPassword ( server.Password )
-//	server.SetQueryInterval ( server.QueryIntervalSec )
 
 	return	& server, nil
 }
@@ -96,7 +91,7 @@ func ( self  * ApiServers )	Create ()		( revel.Result )	{
 	}
 	( * ServersMap )[ server.Label ]	= server
 
-	var returnData	= * GenerateJsonStruct ( "", fmt.Sprintf ( "New server \"%s\" was crated", server.Label ))
+	var returnData	= * GenerateJsonStruct ( fmt.Sprintf ( "New server \"%s\" was created", server.Label ), "" )
 	returnData [ "url" ]	= routes.ApiServers.Show ( server.Label )
 
 	return	self.RenderJson ( returnData )
@@ -169,5 +164,5 @@ func DecodeJsonPayload	( request_body  io.ReadCloser, v  interface {} )	( error 
 }
 
 func GenerateJsonStruct	( response, error  string )	( * map [ string ] interface{} )	{
-	return	& map [ string ] interface{} { "error" : error, "response" : response }
+	return	& map [ string ] interface{} { "error" : error, "result" : response }
 }

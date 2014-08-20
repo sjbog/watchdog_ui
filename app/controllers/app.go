@@ -21,7 +21,7 @@ var	(
 )
 
 func init ()	{
-//	revel.InterceptFunc ( CheckUserAuth, revel.BEFORE, revel.ALL_CONTROLLERS )
+	revel.InterceptFunc ( CheckUserAuth, revel.BEFORE, revel.ALL_CONTROLLERS )
 
 	revel.OnAppStart ( func ()	{
 		ServersMap, ServersLastError	= models .LoadServers ()

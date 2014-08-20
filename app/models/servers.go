@@ -17,17 +17,17 @@ type Servers	map [ string ] * Server
 
 
 func LoadServers ()	( servers  * Servers, err  error )	{
-
-//	servers	= nil
+	servers	= new ( Servers );	* servers = make ( Servers )
 	MergedConfig, err	:= revel.LoadConfig ( SERVERS_CONF )
 
 	if	err != nil	{
+		if	err.Error ()	== "not found"	{
+			err	= nil
+			return
+		}
 		err	= errors.New ( fmt.Sprintf ( "Could not load config file \"%s\" : %s", SERVERS_CONF, err.Error () ) )
 		return
 	}
-
-
-	servers	= new ( Servers );	* servers = make ( Servers )
 
 	for	_, sectionName	:= range ( MergedConfig .Raw () .Sections () )	{
 

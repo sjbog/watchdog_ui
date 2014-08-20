@@ -4,6 +4,8 @@ watchdog_ui
 ### Install
 ```git clone```
 
+Default account: ```root:1234```
+
 ### Servers config file
 
 Examle of conf/servers.conf

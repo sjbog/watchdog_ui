@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<html ng-app="ServersApp" ng-controller="ServersController">
+<html>
 <head>
 	<title>{{.title}}</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
@@ -93,6 +93,12 @@
 
 		.mytable > tbody > tr:nth-child(2n+1) {	background-color: #F2F5F9; }
 		.mytable > tbody > tr:nth-child(2n+2) {	background-color: rgb(255,255,255); }
+
+		#editServer_Commands	{
+			overflow-y: auto;
+			overflow-x: hidden;
+			max-height: 16.1em;
+		}
 	</style>
 </head>
 <body>

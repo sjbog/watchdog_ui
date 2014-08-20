@@ -1,9 +1,9 @@
-<div class="modal" id="editServerModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal no-transition" id="editServerModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
 	<div class="modal-dialog">
 		<div class="modal-content">
 			<div class="modal-header">
-				<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-				<h4 class="modal-title">Editing {{"{{"}} $serverToEditId {{"}}"}}</h4>
+				<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true" class="glyphicon glyphicon-remove"></span> <span class="sr-only">Close</span></button>
+				<h4 class="modal-title">Editing <span class="text-muted" ng-bind="$serverToEditId"></span></h4>
 			</div>
 			<div class="modal-body">
 				<form class="form-horizontal" role="form">
@@ -50,11 +50,41 @@
 						<div class="bg-danger" ng-bind="$serverToEditResult.error"></div>
 						<div class="bg-success" ng-bind="$serverToEditResult.result"></div>
 					</p>
+
+					<fieldset>
+						<legend class="text-muted">Commands
+							<button type="button" class="btn btn-default" data-toggle="collapse" data-target="#editServer_Commands">Show / Hide</button>
+
+							<button ng-click="commandsToEdit.push({})" class="btn btn-default" title="Add New command">
+								<span class="glyphicon glyphicon-plus"></span> Add <span class="sr-only">New command</span>
+							</button>
+						</legend>
+						<div id="editServer_Commands" class="collapse no-transition" data-animation="false">
+							<!--See example, https://docs.angularjs.org/api/ng/directive/select-->
+							<div ng-repeat="cmd in commandsToEdit" ng-model="$serverToEdit.commands" class="form-group">
+								<div class="col-xs-8 col-sm-5">
+									<input ng-model="cmd.label" placeholder="Label" class="form-control" />
+								</div>
+								<div class="col-xs-8 col-sm-5">
+									<input ng-model="cmd.command" placeholder="Command" class="form-control" />
+								</div>
+								<button ng-click="commandsToEdit.splice($index, 1)" class="btn btn-default" title="Remove command">
+									<span class="glyphicon glyphicon-trash"></span> <span class="sr-only">Remove command</span>
+								</button>
+							</div>
+							<div class="text-muted col-xs-offset-1" ng-if="! commandsToEdit.length">
+								<span class="glyphicon glyphicon-flag"></span> Empty</div>
+						</div>
+					</fieldset>
 				</form>
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-				<button type="button" class="btn btn-primary" ng-click="SaveServerEdit()">Send changes</button>
+				<button type="button" class="btn btn-danger pull-left" data-dismiss2="modal" ng-click='ServersPost( $serverToEditId, null, { _method : "DELETE" } )'>
+					<span class="glyphicon glyphicon-trash"></span> Delete</button>
+				<button type="button" class="btn btn-default" data-dismiss="modal">
+					<span class="glyphicon glyphicon-ban-circle"></span> Close</button>
+				<button type="button" class="btn btn-primary" ng-click="SaveServerEdit()">
+					<span class="glyphicon glyphicon-share"></span> Send changes</button>
 			</div>
 		</div><!-- /.modal-content -->
 	</div><!-- /.modal-dialog -->

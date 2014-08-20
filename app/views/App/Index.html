@@ -1,6 +1,7 @@
 {{set . "title" "Home"}}
 {{template "header.html" .}}
-<nav class="navbar navbar-default" role="navigation">
+	<!-- Danger: Auth Redirect will cycle - infinite loop ng-controller starts auto-update -->
+<nav class="navbar navbar-default" role="navigation" ng-app="ServersApp" ng-controller="ServersController">
 
 	<div class="container-fluid">
 		<div class="navbar-header">
@@ -28,6 +29,8 @@
 					<button class="btn navbar-btn btn-primary" ng-click="ServersAction('start')">Start</button>
 					<button class="btn navbar-btn btn-primary" ng-click="ServersAction('stop')">Stop</button>
 				</div>
+
+				<button class="btn navbar-btn btn-info" ng-click="OpenServerEdit()">Add</button>
 
 				<!--<button class="btn navbar-btn btn-info disabled" disabled ng-click="">Manage Users</button>-->
 			</div>
@@ -93,9 +96,9 @@
 		</div>
 	</div>
 
+{{ template "App/server_edit.html" }}
 </nav>
 
-{{ template "App/server_edit.html" }}
 
 <div class="container">
 	<div class="row">

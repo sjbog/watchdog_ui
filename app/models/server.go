@@ -13,7 +13,7 @@ import	(
 	"github.com/revel/revel"
 	"code.google.com/p/go.crypto/ssh"
 	"github.com/robfig/cron"
-	"github.com/kr/pretty"
+//	"github.com/kr/pretty"
 )
 
 var serverRegex = regexp.MustCompile("^\\w+$")
@@ -84,7 +84,7 @@ func NewServerFromParams ( Params  * revel.Params )	( server  * Server )	{
 	var cmds	[][] string
 	Params.Bind ( & cmds, "commands" )
 	server.Commands	= make ( map [ string ] string )
-	fmt.Printf("%# v", pretty.Formatter( Params ))
+
 
 	for	_, cmd	:= range ( cmds )	{
 		if	len ( cmd ) == 2	&& cmd [ 0 ] != ""	&& cmd [ 1 ] != ""	{
@@ -110,7 +110,7 @@ func LoadOptionsFromConfig ( MergedConfig  * revel.MergedConfig )	( * map [ stri
 
 func ( self  * Server )	SetQueryInterval ( seconds  int )	{
 	if	seconds < 3	{
-		seconds	= 3
+		seconds	= 60
 	}
 	if	self.Cron != nil	{
 		go	self.Cron.Stop ()
@@ -166,9 +166,13 @@ func ( self  * Server )	UnmarshalJSON ( data  [] byte )	( err error )	{
 	err	= json.Unmarshal ( data, & server )
 
 	* self	= Server ( server )
-	self.SetPassword ( self.Password )
-	self.ParsePrivateKey ( self.PrivateKeyPath )
-	self.SetQueryInterval ( self.QueryIntervalSec )
+	self.PrivateKeyPath	= ""
+
+	self.SetPassword ( server.Password )
+	self.ParsePrivateKey ( server.PrivateKeyPath )
+	self.SetQueryInterval ( server.QueryIntervalSec )
+
+//	fmt.Printf("%v, %# v", err, pretty.Formatter( self ))
 
 	if	err == nil	{	return	}
 
@@ -177,6 +181,10 @@ func ( self  * Server )	UnmarshalJSON ( data  [] byte )	( err error )	{
 	err	= json.Unmarshal ( data, & alt_server )
 	if	err != nil	{	return	}
 
+	if	( alt_server.QueryIntervalSec == "" )	{
+		self.SetQueryInterval ( 0 )
+		return
+	}
 	query_interval_int, err	:= strconv.Atoi ( alt_server.QueryIntervalSec )
 	if	err != nil	{	return	}
 
