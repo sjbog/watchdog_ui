@@ -39,10 +39,10 @@ php-fpm	= "service php5-fpm status"
 
 ### Screenshots
 
-![Login view](https://raw.github.com/sjbog/watchdog_ui/master/public/img/watchdog_ui_1.png "Login view")
-
 ![Main view](https://raw.github.com/sjbog/watchdog_ui/master/public/img/watchdog_ui_2.png "Main view")
 
 ![Server edit view](https://raw.github.com/sjbog/watchdog_ui/master/public/img/watchdog_ui_3.png "Server edit view")
 
 ![Server status view](https://raw.github.com/sjbog/watchdog_ui/master/public/img/watchdog_ui_4.png "Server status view")
+
+![Login view](https://raw.github.com/sjbog/watchdog_ui/master/public/img/watchdog_ui_1.png "Login view")
